@@ -19,3 +19,7 @@
  	.text
 _start: 
 	jmp .
+
+	.org 0x1fe  // 510
+	.byte 0x55, 0xaa
+	// .word 0xaa55      // x86为小端序，0x55为低位，存在低内存地址，也就是0x1fe处

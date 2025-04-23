@@ -50,3 +50,9 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# My Own .gitignore file
+*.txt
+image/
+.DS_Store
+os.bin
