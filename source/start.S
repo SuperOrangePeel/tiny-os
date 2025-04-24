@@ -18,8 +18,48 @@
 	// 以下是代码区
  	.text
 _start: 
+	mov $0, %ax
+	mov %ax, %ds
+	mov %ax, %ss
+	mov %ax, %es
+	mov %ax, %fs
+	mov %ax, %gs
+
+read_self_all:
+	mov $0x02, %ah // 读磁盘
+	mov $0x40, %al // 64个扇区
+	mov $_start_32, %bx // 读到内存的0x7e00处 
+	mov $0x2, %cl
+	mov $0x80, %dl 
+	int $0x13
+	jc read_self_all
+
+	cli
+	lgdt [gdt_desc] // Load Global Descriptor Table
+	mov $0x1, %ax
+	lmsw %ax // Load Machine Status Word
+	jmp $KERNEL_CODE_SEG, $_start_32 // 加载新的代码段选择子到 CS 寄存器，进入保护模式，跳转到32位代码段
 	jmp .
 
-	.org 0x1fe  // 510
+
+	.org 0x1fe  //跳转到510处  汇编器会自动用0填充之前的空间
 	.byte 0x55, 0xaa
-	// .word 0xaa55      // x86为小端序，0x55为低位，存在低内存地址，也就是0x1fe处
+	// .word 0xaa55      //x86为小端序，0x55为低位，存在低内存地址，也就是0x1fe处
+
+
+	.code32
+	.text
+//因为伪指令.byte会被编译器编译到0x7dfe和0x7dff处的指令
+//故 _start_32_ 指向 0x7e00处
+_start_32:5
+	// 此时进入保护模式了
+	mov $KERNEL_CODE_SEG, %ax // 选择内核代码段
+	mov %ax, %ds // 选择数据段
+	mov %ax, %es // 选择额外段
+	mov %ax, %fs // 选择fs段
+	mov %ax, %gs // 选择gs段
+	mov $_start, %esp // 设置栈指针, _start在0x7c00处，前面的空间用作栈
+	
+gdt_desc:
+	.word (256*8) - 1 // gdt表的大小
+	.long gdt_table // gdt表的地址

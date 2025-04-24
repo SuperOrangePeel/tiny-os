@@ -8,3 +8,35 @@
  *课程请见：https://study.163.com/course/introduction.htm?courseId=1212765805&_trace_c_p_k2_=0bdf1e7edda543a8b9a0ad73b5100990
  */
 #include "os.h"
+
+
+typedef unsigned char uint8_t;
+typedef unsigned short uint16_t;
+typedef unsigned int uint32_t;
+
+// struct gdt_entry
+// {
+//     uint16_t limit_low; // 段界限低16位
+//     uint16_t base_low;  // 基址低16位
+//     uint8_t base_middle; // 基址中8位
+//     uint8_t access;     // 段描述符属性
+//     uint8_t granularity; // 段界限高4位和其他属性
+//     uint8_t base_high;   // 基址高8位
+// } __attribute__((packed)); // 按照字节对齐
+
+struct {
+    uint16_t limit_l, base_l, basehl_attr, base_limit;
+} gdt_table[256] __attribute__((aligned(8))) = {
+    [KERNEL_CODE_SEG / 8] = {
+        .limit_l = 0xFFFF, // limit全部为1，代表最大值为4GB
+        .base_l = 0x0000, // 代码段基址
+        .basehl_attr = 0x9A00, // 可执行，读权限
+        .base_limit = 0x00CF
+    },
+    [KERNEL_DATA_SEG / 8] = {
+        .limit_l = 0xFFFF,
+        .base_l = 0x0000,
+        .basehl_attr = 0x9200, // 可读写
+        .base_limit = 0x00CF
+    }
+};
