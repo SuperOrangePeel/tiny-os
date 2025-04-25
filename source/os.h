@@ -13,4 +13,11 @@
 #define KERNEL_CODE_SEG 8
 #define KERNEL_DATA_SEG 16
 
+#define PDE_PRESENT     (1<<0)
+#define PDE_RW          (1<<1)
+#define PDE_USER        (1<<2)
+#define PDE_PS          (1<<7)
+
+#define MAP_ADDR 0x80000000
+
 #endif // OS_H

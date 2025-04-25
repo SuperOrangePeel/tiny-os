@@ -37,9 +37,9 @@ read_self_all:
 	cli
 	lgdt [gdt_desc] // Load Global Descriptor Table
 	mov $0x1, %ax
-	lmsw %ax // Load Machine Status Word
+	lmsw %ax // Load Machine Status Word 将PE位置1
 	jmp $KERNEL_CODE_SEG, $_start_32 // 加载新的代码段选择子到 CS 寄存器，进入保护模式，跳转到32位代码段
-	jmp .
+	
 
 
 	.org 0x1fe  //跳转到510处  汇编器会自动用0填充之前的空间
@@ -51,7 +51,7 @@ read_self_all:
 	.text
 //因为伪指令.byte会被编译器编译到0x7dfe和0x7dff处的指令
 //故 _start_32_ 指向 0x7e00处
-_start_32:5
+_start_32:
 	// 此时进入保护模式了
 	mov $KERNEL_CODE_SEG, %ax // 选择内核代码段
 	mov %ax, %ds // 选择数据段
@@ -59,6 +59,21 @@ _start_32:5
 	mov %ax, %fs // 选择fs段
 	mov %ax, %gs // 选择gs段
 	mov $_start, %esp // 设置栈指针, _start在0x7c00处，前面的空间用作栈
+
+	call os_init
+	
+	mov $pg_dir, %eax // 设置页目录表的基地址
+	mov %eax, %cr3 // 设置页目录表基地址寄存器
+
+	mov %cr4, %eax // 设置控制寄存器4
+	orl $(1 << 4), %eax // 设置页大小位
+	mov %eax, %cr4 // 设置控制寄存器4
+
+	mov %cr0, %eax // 读取控制寄存器0
+	orl $(1 << 31), %eax // 设置PG位
+	mov %eax, %cr0 // 设置控制寄存器0
+
+	jmp .
 	
 gdt_desc:
 	.word (256*8) - 1 // gdt表的大小

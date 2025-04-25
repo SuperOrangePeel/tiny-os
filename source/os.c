@@ -14,6 +14,14 @@ typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned int uint32_t;
 
+
+uint32_t pg_dir[1024] __attribute__((aligned(4096))) = {
+    [0] = (uint32_t)0 | PDE_PRESENT | PDE_PS | PDE_RW | PDE_USER,
+};
+uint32_t pg_table[1024] __attribute__((aligned(4096))) = {PDE_USER};
+
+uint8_t map_phy_buffer[4096] __attribute__((aligned(4096))) = {0x36};
+
 // struct gdt_entry
 // {
 //     uint16_t limit_low; // 段界限低16位
@@ -40,3 +48,9 @@ struct {
         .base_limit = 0x00CF
     }
 };
+
+
+void os_init() {
+    pg_dir[MAP_ADDR >> 22] = (uint32_t)pg_table | PDE_PRESENT | PDE_RW | PDE_USER;
+    pg_table[(MAP_ADDR >> 12) & 0x3FF] = (uint32_t)map_phy_buffer | PDE_PRESENT | PDE_RW | PDE_USER;
+}
