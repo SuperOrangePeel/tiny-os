@@ -49,8 +49,29 @@ struct {
     }
 };
 
+// 封装outb指令 outb是一个x86架构的I/O端口输出指令，用于向I/O端口写入一个字节的数据。
+// outb 
+void outb(uint8_t data, uint16_t port) {
+    /*
+    0f b7 55 f8          movzwl -0x8(%ebp),%edx
+    0f b6 45 fc          movzbl -0x4(%ebp),%eax
+    ee                   out    %al,(%dx)
+    */
+    __asm__ __volatile__("outb %[v], %[p]"::[p]"d"(port), [v]"a"(data));
+}
 
 void os_init() {
+    outb(0x11, 0x20); // 表示开始初始化8259主片
+    outb(0x11, 0xA0); // 表示开始初始化8259从片
+    outb(0x20, 0x21); // 告诉8259主片，8259主片的中断号从0x20开始
+    outb(0x28, 0xA1); // 告诉8259从片，8259从片的中断号从0x28开始
+    outb(1 << 2, 0x21); //告诉8259主片，2号管脚(0 1 2)连接了一个从片
+    outb(2, 0xa1); // 告诉8259从片，2号管脚(0 1 2)连接了一个主片
+    outb(0x1, 0x21);// 告诉8259A主片，要给i8086发送中断
+    outb(0x1, 0xA1); // 告诉8259A从片，要给i8086发送中断
+    outb(0xfe, 0x21); //只留下时钟中断
+    outb(0xff, 0xA1); //关闭从片所有中断
+
     pg_dir[MAP_ADDR >> 22] = (uint32_t)pg_table | PDE_PRESENT | PDE_RW | PDE_USER;
     pg_table[(MAP_ADDR >> 12) & 0x3FF] = (uint32_t)map_phy_buffer | PDE_PRESENT | PDE_RW | PDE_USER;
 }

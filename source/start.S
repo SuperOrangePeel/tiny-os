@@ -74,7 +74,8 @@ _start_32:
 	mov %eax, %cr0 // 设置控制寄存器0
 
 	jmp .
-	
+
+// 手册要求的规范写法	
 gdt_desc:
 	.word (256*8) - 1 // gdt表的大小
 	.long gdt_table // gdt表的地址
