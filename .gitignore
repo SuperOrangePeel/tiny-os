@@ -56,3 +56,6 @@ dkms.conf
 image/
 .DS_Store
 os.bin
+
+.gitignore
+整体结构框图.jpg
